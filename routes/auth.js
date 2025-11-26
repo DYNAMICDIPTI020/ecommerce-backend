@@ -81,9 +81,9 @@ router.get('/google/callback',
         { expiresIn: '7d' }
       );
       
-      res.redirect(`https://my-shop-jija3gcki-sahoodiptiranjan2006-4868s-projects.vercel.app/auth/callback?token=${token}`);
+      res.redirect(`https://frontend-aur90yie0-sahoodiptiranjan2006-4868s-projects.vercel.app/auth/callback?token=${token}`);
     } catch (error) {
-      res.redirect(`https://my-shop-jija3gcki-sahoodiptiranjan2006-4868s-projects.vercel.app/login?error=auth_failed`);
+      res.redirect(`https://frontend-aur90yie0-sahoodiptiranjan2006-4868s-projects.vercel.app/login?error=auth_failed`);
     }
   }
 );
