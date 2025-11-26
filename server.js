@@ -1,13 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const passport = require('passport');
 require('dotenv').config();
+require('./config/passport');
 
 const app = express();
 
 // Basic middleware
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://myshop_user:MyShop123!@my-shop-cluster.nggthgn.mongodb.net/myshop')
