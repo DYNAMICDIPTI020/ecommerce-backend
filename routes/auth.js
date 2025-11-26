@@ -81,9 +81,9 @@ router.get('/google/callback',
         { expiresIn: '7d' }
       );
       
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/auth/callback?token=${token}`);
+      res.redirect(`https://myshop-demo.vercel.app/auth/callback?token=${token}`);
     } catch (error) {
-      res.redirect(`${process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=auth_failed`);
+      res.redirect(`https://myshop-demo.vercel.app/login?error=auth_failed`);
     }
   }
 );
