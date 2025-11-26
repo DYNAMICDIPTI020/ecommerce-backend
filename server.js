@@ -25,6 +25,19 @@ app.get('/', (req, res) => {
   res.json({ message: 'E-commerce API Server Running!' });
 });
 
+// API status check
+app.get('/api', (req, res) => {
+  res.json({ 
+    message: 'API is working!',
+    endpoints: {
+      products: '/api/products',
+      auth: '/api/auth/login (POST), /api/auth/register (POST)',
+      orders: '/api/orders',
+      admin: '/api/admin'
+    }
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
