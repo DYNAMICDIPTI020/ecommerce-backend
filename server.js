@@ -5,15 +5,18 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const session = require('express-session');
 const passport = require('./config/passport');
-const compression = require('./middleware/compression');
+const compression = require('compression');
 require('dotenv').config();
 
 const app = express();
 
 // Security & Performance Middleware
 app.use(helmet());
-app.use(compression);
-app.use(cors());
+app.use(compression());
+app.use(cors({
+  origin: [process.env.CLIENT_URL || 'http://localhost:3000', 'https://your-vercel-domain.vercel.app'],
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
