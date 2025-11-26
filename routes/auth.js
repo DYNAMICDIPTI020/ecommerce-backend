@@ -66,15 +66,40 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Test route
+router.get('/test', (req, res) => {
+  res.json({ 
+    message: 'Auth routes working',
+    hasGoogleCredentials: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+  });
+});
+
 // Google OAuth routes
-router.get('/google', passport.authenticate('google', {
-  scope: ['profile', 'email']
-}));
+router.get('/google', (req, res, next) => {
+  console.log('Google OAuth initiated');
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(500).json({ error: 'Google OAuth not configured' });
+  }
+  passport.authenticate('google', {
+    scope: ['profile', 'email']
+  })(req, res, next);
+});
 
 router.get('/google/callback', 
-  passport.authenticate('google', { session: false }),
+  (req, res, next) => {
+    console.log('Google callback received');
+    passport.authenticate('google', { 
+      session: false,
+      failureRedirect: 'https://frontend-aur90yie0-sahoodiptiranjan2006-4868s-projects.vercel.app/login?error=auth_failed'
+    })(req, res, next);
+  },
   async (req, res) => {
     try {
+      console.log('User authenticated:', req.user);
+      if (!req.user) {
+        return res.redirect('https://frontend-aur90yie0-sahoodiptiranjan2006-4868s-projects.vercel.app/login?error=no_user');
+      }
+      
       const token = jwt.sign(
         { userId: req.user._id },
         process.env.JWT_SECRET || 'your-secret-key',
@@ -83,6 +108,7 @@ router.get('/google/callback',
       
       res.redirect(`https://frontend-aur90yie0-sahoodiptiranjan2006-4868s-projects.vercel.app/auth/callback?token=${token}`);
     } catch (error) {
+      console.error('OAuth callback error:', error);
       res.redirect(`https://frontend-aur90yie0-sahoodiptiranjan2006-4868s-projects.vercel.app/login?error=auth_failed`);
     }
   }
