@@ -6,30 +6,92 @@ const auth = require('../middleware/auth');
 const adminAuth = require('../middleware/adminAuth');
 const router = express.Router();
 
-// GET /api/admin/analytics
-router.get('/analytics', auth, adminAuth, async (req, res) => {
+// GET /api/admin/analytics/dashboard
+router.get('/analytics/dashboard', auth, adminAuth, async (req, res) => {
   try {
-    const totalRevenue = await Order.aggregate([
-      { $match: { status: { $in: ['paid', 'shipped', 'completed'] } } },
-      { $group: { _id: null, total: { $sum: '$total' } } }
-    ]);
-    
-    const orderCounts = await Order.aggregate([
-      { $group: { _id: '$status', count: { $sum: 1 } } }
-    ]);
-    
-    const productCount = await Product.countDocuments({ isActive: true });
-    const userCount = await User.countDocuments();
-    
-    res.json({
-      totalRevenue: totalRevenue[0]?.total || 0,
-      orderCounts: orderCounts.reduce((acc, item) => {
-        acc[item._id] = item.count;
-        return acc;
-      }, {}),
-      productCount,
-      userCount
+    const { period = '30' } = req.query;
+    const daysAgo = parseInt(period);
+    const startDate = new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000);
+
+    // Basic stats
+    const totalUsers = await User.countDocuments();
+    const totalProducts = await Product.countDocuments();
+    const totalOrders = await Order.countDocuments();
+    const recentOrders = await Order.countDocuments({ 
+      createdAt: { $gte: startDate } 
     });
+
+    // Revenue data by day
+    const revenueData = await Order.aggregate([
+      { 
+        $match: { 
+          status: { $in: ['paid', 'shipped', 'completed'] },
+          createdAt: { $gte: startDate }
+        } 
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          revenue: { $sum: "$total" },
+          orders: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Top products
+    const topProducts = await Order.aggregate([
+      { $unwind: "$items" },
+      { 
+        $group: {
+          _id: "$items.productId",
+          totalSold: { $sum: "$items.quantity" },
+          revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } }
+        }
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "products",
+          localField: "_id",
+          foreignField: "_id",
+          as: "product"
+        }
+      },
+      { $unwind: "$product" }
+    ]);
+
+    // Order status distribution
+    const orderStatus = await Order.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]);
+
+    res.json({
+      stats: {
+        totalUsers,
+        totalProducts,
+        totalOrders,
+        recentOrders
+      },
+      revenueData,
+      topProducts,
+      orderStatus
+    });
+  } catch (error) {
+    console.error('Analytics error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/admin/orders
+router.get('/orders', auth, adminAuth, async (req, res) => {
+  try {
+    const orders = await Order.find()
+      .populate('userId', 'name email')
+      .populate('items.productId', 'name')
+      .sort({ createdAt: -1 });
+    res.json(orders);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
