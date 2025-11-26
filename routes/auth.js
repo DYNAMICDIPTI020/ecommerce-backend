@@ -121,10 +121,10 @@ router.get('/google/callback',
         { expiresIn: '7d' }
       );
       
-      res.redirect(`https://frontend-cfc7zvziz-sahoodiptiranjan2006-4868s-projects.vercel.app/auth/callback?token=${token}`);
+      res.redirect(`https://frontend-qwef0b5ve-sahoodiptiranjan2006-4868s-projects.vercel.app/auth/callback?token=${token}`);
     } catch (error) {
       console.error('OAuth callback error:', error);
-      res.redirect(`https://frontend-cfc7zvziz-sahoodiptiranjan2006-4868s-projects.vercel.app/login?error=auth_failed`);
+      res.redirect(`https://frontend-qwef0b5ve-sahoodiptiranjan2006-4868s-projects.vercel.app/login?error=auth_failed`);
     }
   }
 );
