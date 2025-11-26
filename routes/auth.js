@@ -75,14 +75,11 @@ router.get('/test', (req, res) => {
 });
 
 // Google OAuth routes
-router.get('/google', (req, res, next) => {
-  console.log('Google OAuth initiated');
-  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-    return res.status(500).json({ error: 'Google OAuth not configured' });
-  }
-  passport.authenticate('google', {
-    scope: ['profile', 'email']
-  })(req, res, next);
+router.get('/google', (req, res) => {
+  res.status(503).json({ 
+    error: 'Google OAuth temporarily disabled',
+    message: 'Please use email/password login for now'
+  });
 });
 
 router.get('/google/callback', 
